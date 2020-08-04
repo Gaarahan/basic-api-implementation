@@ -120,9 +120,9 @@ class RsListApplicationTests {
         .andExpect(jsonPath("$[1].eventName", is("rs2-modified")))
         .andExpect(jsonPath("$[2].eventName", is("rs3")))
 
-        .andExpect(jsonPath("$[0].key", is("key-modified")))
+        .andExpect(jsonPath("$[0].key", is("key1-modified")))
         .andExpect(jsonPath("$[1].key", is("key")))
-        .andExpect(jsonPath("$[2].key", is("key-modified")))
+        .andExpect(jsonPath("$[2].key", is("key3-modified")))
 
         .andExpect(status().isOk());
   }

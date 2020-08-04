@@ -2,8 +2,8 @@ package com.thoughtworks.rslist.api;
 
 public class RsEvent {
 
-  private final String eventName;
-  private final String key;
+  private String eventName;
+  private String key;
 
   public RsEvent(String eventName, String key) {
     this.eventName = eventName;
@@ -16,5 +16,13 @@ public class RsEvent {
 
   public String getKey() {
     return key;
+  }
+
+  public void setEventName(String eventName) {
+    this.eventName = eventName;
+  }
+
+  public void setKey(String key) {
+    this.key = key;
   }
 }
