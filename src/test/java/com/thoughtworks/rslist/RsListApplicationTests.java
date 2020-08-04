@@ -1,5 +1,6 @@
 package com.thoughtworks.rslist;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -7,11 +8,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.hamcrest.Matchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
@@ -20,6 +18,7 @@ class RsListApplicationTests {
 
   @Autowired
   private MockMvc mockMvc;
+  ObjectMapper objectMapper = new ObjectMapper();
 
   @Test
   void should_return_one_rs_event () throws Exception {
@@ -102,6 +101,28 @@ class RsListApplicationTests {
         .andExpect(jsonPath("$[1].key", is("key")))
         .andExpect(jsonPath("$[2].key", is("key")))
         .andExpect(jsonPath("$[3].key", is("new")))
+
+        .andExpect(status().isOk());
+  }
+
+  @Test
+  void should_update_specific_rs_event() throws Exception {
+
+    this.mockMvc.perform(patch("/rs/update?index=1&eventName=rs1-modified&key=key1-modified"))
+        .andExpect(status().isOk());
+    this.mockMvc.perform(patch("/rs/update?index=2&eventName=rs2-modified"))
+        .andExpect(status().isOk());
+    this.mockMvc.perform(patch("/rs/update?index=3&key=key3-modified"))
+        .andExpect(status().isOk());
+
+    this.mockMvc.perform(get("/rs/list"))
+        .andExpect(jsonPath("$[0].eventName", is("rs1-modified")))
+        .andExpect(jsonPath("$[1].eventName", is("rs2-modified")))
+        .andExpect(jsonPath("$[2].eventName", is("rs3")))
+
+        .andExpect(jsonPath("$[0].key", is("key-modified")))
+        .andExpect(jsonPath("$[1].key", is("key")))
+        .andExpect(jsonPath("$[2].key", is("key-modified")))
 
         .andExpect(status().isOk());
   }

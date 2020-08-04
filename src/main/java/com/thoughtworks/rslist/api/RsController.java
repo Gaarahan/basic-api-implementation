@@ -7,7 +7,7 @@ import java.util.List;
 
 @RestController
 public class RsController {
-  private List<RsEvent> rsList;
+  private final List<RsEvent> rsList;
 
   public RsController() {
     this.rsList = new ArrayList<>();
