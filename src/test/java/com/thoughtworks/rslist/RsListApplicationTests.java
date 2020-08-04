@@ -1,12 +1,18 @@
 package com.thoughtworks.rslist;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.thoughtworks.rslist.api.RsEvent;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultActions;
+
+import java.util.ArrayList;
 
 import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -18,7 +24,15 @@ class RsListApplicationTests {
 
   @Autowired
   private MockMvc mockMvc;
-  ObjectMapper objectMapper = new ObjectMapper();
+
+  private ArrayList<RsEvent> getCurrentRsList () throws Exception {
+    String res = this.mockMvc.perform(get("/rs/list"))
+        .andReturn().getResponse().getContentAsString();
+    @SuppressWarnings("unchecked")
+    ArrayList<RsEvent> curRsList = (ArrayList<RsEvent>) new ObjectMapper().readValue(res, ArrayList.class);
+
+    return curRsList;
+  }
 
   @Test
   void should_return_one_rs_event () throws Exception {
@@ -125,5 +139,17 @@ class RsListApplicationTests {
         .andExpect(jsonPath("$[2].key", is("key3-modified")))
 
         .andExpect(status().isOk());
+  }
+
+  @Test
+  void should_delete_specific_rs_event() throws Exception {
+    ArrayList<RsEvent> expectList = this.getCurrentRsList();
+    expectList.remove(0);
+
+    this.mockMvc.perform(delete("/rs/1"))
+        .andExpect(status().isOk());
+
+    ArrayList<RsEvent> actualList = this.getCurrentRsList();
+    Assertions.assertEquals(expectList, actualList);
   }
 }
