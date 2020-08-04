@@ -29,8 +29,23 @@ public class RsController {
     return this.rsList;
   }
 
-  @PostMapping("/rs/add")
+  @PostMapping("rs/add")
   public void addNewRsEvent (@RequestBody RsEvent event) {
     this.rsList.add(event);
+  }
+
+  @PatchMapping("rs/update")
+  public void updateRsEvent (@RequestParam Integer index,
+                             @RequestParam(required = false) String eventName,
+                             @RequestParam(required = false) String key) {
+
+    RsEvent targetRsEvent = this.rsList.get(index - 1);
+    if (eventName != null) {
+      targetRsEvent.setEventName(eventName);
+    }
+
+    if (key!= null) {
+      targetRsEvent.setKey(key);
+    }
   }
 }
