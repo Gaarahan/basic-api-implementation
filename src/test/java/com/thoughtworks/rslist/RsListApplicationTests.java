@@ -22,7 +22,15 @@ class RsListApplicationTests {
   private MockMvc mockMvc;
 
   @Test
-  void should_return_rs_list () throws Exception {
+  void should_return_one_rs_event () throws Exception {
+    this.mockMvc.perform(get("/rs/1"))
+        .andExpect(jsonPath("$.eventName", is("rs1")))
+        .andExpect(jsonPath("$.key", is("key")))
+        .andExpect(status().isOk());
+  }
+
+  @Test
+  void should_return_all_rs_list () throws Exception {
     this.mockMvc.perform(get("/rs/list"))
         .andExpect(jsonPath("$", hasSize(3)))
 
@@ -60,7 +68,7 @@ class RsListApplicationTests {
 
         .andExpect(status().isOk());
     this.mockMvc.perform(get("/rs/list?start=1&end=3"))
-        .andExpect(jsonPath("$", hasSize(2)))
+        .andExpect(jsonPath("$", hasSize(3)))
 
         .andExpect(jsonPath("$[0].eventName", is("rs1")))
         .andExpect(jsonPath("$[1].eventName", is("rs2")))
