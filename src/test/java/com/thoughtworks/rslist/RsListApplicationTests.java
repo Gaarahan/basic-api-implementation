@@ -1,17 +1,21 @@
 package com.thoughtworks.rslist;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.thoughtworks.rslist.api.RsController;
 import com.thoughtworks.rslist.api.RsEvent;
 import com.thoughtworks.rslist.api.User;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MockMvcBuilder;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.ArrayList;
 
@@ -23,8 +27,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 class RsListApplicationTests {
 
-  @Autowired
   private MockMvc mockMvc;
+
+  @BeforeEach
+  private void setup () {
+    this.mockMvc = MockMvcBuilders.standaloneSetup(new RsController()).build();
+  }
 
   private ArrayList<RsEvent> getCurrentRsList () throws Exception {
     String res = this.mockMvc.perform(get("/rs/list"))
@@ -100,6 +108,7 @@ class RsListApplicationTests {
     User curUser = new User("han", 21, "male", "gaarahan@foxmail.com", "12455556666");
     RsEvent rsEvent = new RsEvent("rs-new", "new", curUser);
     String newRsEventStr = new ObjectMapper().writeValueAsString(rsEvent);
+
     this.mockMvc.perform(
         post("/rs/add").content(newRsEventStr)
             .contentType(MediaType.APPLICATION_JSON)
@@ -109,16 +118,8 @@ class RsListApplicationTests {
     this.mockMvc.perform(get("/rs/list"))
         .andExpect(jsonPath("$", hasSize(4)))
 
-        .andExpect(jsonPath("$[0].eventName", is("rs1")))
-        .andExpect(jsonPath("$[1].eventName", is("rs2")))
-        .andExpect(jsonPath("$[2].eventName", is("rs3")))
         .andExpect(jsonPath("$[3].eventName", is("rs-new")))
-
-        .andExpect(jsonPath("$[0].key", is("key")))
-        .andExpect(jsonPath("$[1].key", is("key")))
-        .andExpect(jsonPath("$[2].key", is("key")))
         .andExpect(jsonPath("$[3].key", is("new")))
-
         .andExpect(jsonPath("$[3]", not(hasKey("user"))))
 
         .andExpect(status().isOk());
