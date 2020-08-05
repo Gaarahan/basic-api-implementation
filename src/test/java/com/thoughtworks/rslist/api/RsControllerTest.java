@@ -115,8 +115,7 @@ class RsControllerTest {
 
   @Test
   void should_add_new_rs_event() throws Exception {
-    RsEvent rsEvent = new RsEvent("rs-new", "new", curUser);
-    String newRsEventStr = ignoreAnnotationsMapper.writeValueAsString(rsEvent);
+    String newRsEventStr = "{\"eventName\":\"rs-new\",\"key\":\"new\",\"user\":{\"user_name\":\"han\",\"user_age\":21,\"user_gender\":\"male\",\"user_email\":\"test@test.com\",\"user_phone\":\"13755556666\"}}";
 
     this.mockMvc.perform(
         post("/rs/add").content(newRsEventStr)
