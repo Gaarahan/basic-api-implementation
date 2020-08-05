@@ -1,5 +1,7 @@
 package com.thoughtworks.rslist.domain;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import javax.validation.constraints.*;
 
 /**
@@ -9,19 +11,24 @@ public class User {
 
   @NotNull
   @Size(max = 8)
+  @JsonProperty("user_name")
   private String name;
 
   @NotNull
   @Min(18)
   @Max(100)
+  @JsonProperty("user_age")
   private int age;
 
   @NotNull
+  @JsonProperty("user_gender")
   private String gender;
 
   @Email
+  @JsonProperty("user_email")
   private String email;
 
+  @JsonProperty("user_phone")
   @Pattern(regexp = "1[3-9][0-9]{9}")
   private String phone;
 
