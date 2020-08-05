@@ -2,6 +2,7 @@ package com.thoughtworks.rslist;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.thoughtworks.rslist.api.RsEvent;
+import com.thoughtworks.rslist.api.User;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -96,12 +97,14 @@ class RsListApplicationTests {
 
   @Test
   void should_add_new_rs_event() throws Exception {
-    String newRsStr = "{ \"eventName\": \"rs-new\", \"key\": \"new\" }";
+    User curUser = new User("han", 21, "male", "gaarahan@foxmail.com", "12455556666");
+    RsEvent rsEvent = new RsEvent("rs-new", "new", curUser);
+    String newRsEventStr = new ObjectMapper().writeValueAsString(rsEvent);
     this.mockMvc.perform(
-        post("/rs/add").content(newRsStr)
+        post("/rs/add").content(newRsEventStr)
             .contentType(MediaType.APPLICATION_JSON)
     )
-        .andExpect(status().isOk());
+        .andExpect(status().isCreated());
 
     this.mockMvc.perform(get("/rs/list"))
         .andExpect(jsonPath("$", hasSize(4)))
@@ -115,6 +118,8 @@ class RsListApplicationTests {
         .andExpect(jsonPath("$[1].key", is("key")))
         .andExpect(jsonPath("$[2].key", is("key")))
         .andExpect(jsonPath("$[3].key", is("new")))
+
+        .andExpect(jsonPath("$[3]", not(hasKey("user"))))
 
         .andExpect(status().isOk());
   }
