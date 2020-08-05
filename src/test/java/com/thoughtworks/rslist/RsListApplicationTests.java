@@ -33,7 +33,7 @@ class RsListApplicationTests {
   @BeforeEach
   private void setup () {
     this.mockMvc = MockMvcBuilders.standaloneSetup(new RsController()).build();
-    this.curUser = new User("han", 21, "male", "gaarahan@foxmail.com", "13755556666");
+    this.curUser = new User("han", 21, "male", "test@test.com", "13755556666");
     this.rsEvent = new RsEvent("rs-new", "key", curUser);
 
     this.ignoreAnnotationsMapper = new ObjectMapper();
@@ -112,7 +112,7 @@ class RsListApplicationTests {
   @Test
   void should_add_new_rs_event() throws Exception {
     RsEvent rsEvent = new RsEvent("rs-new", "new", curUser);
-    String newRsEventStr = new ObjectMapper().writeValueAsString(rsEvent);
+    String newRsEventStr = ignoreAnnotationsMapper.writeValueAsString(rsEvent);
 
     this.mockMvc.perform(
         post("/rs/add").content(newRsEventStr)
