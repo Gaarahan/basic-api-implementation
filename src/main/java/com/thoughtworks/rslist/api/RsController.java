@@ -3,6 +3,8 @@ package com.thoughtworks.rslist.api;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.thoughtworks.rslist.domain.RsEvent;
 import com.thoughtworks.rslist.domain.User;
+import com.thoughtworks.rslist.exception.InvalidIndexException;
+import com.thoughtworks.rslist.exception.InvalidRequestParameterException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,17 +30,29 @@ public class RsController {
 
   @GetMapping("rs/{index}")
   public ResponseEntity<RsEvent> getRsEventOfIndex (@PathVariable int index) {
+    if (index < 1 || index > this.rsList.size()) {
+      throw new InvalidIndexException();
+    }
     return ResponseEntity.ok(this.rsList.get(index - 1));
   }
 
   @GetMapping("rs/list")
-  public ResponseEntity<List<RsEvent>> getSplitOrAllRsList (@RequestParam(required = false) Integer start, @RequestParam(required = false) Integer end) {
+  public ResponseEntity<List<RsEvent>> getSplitOrAllRsList (
+      @RequestParam(required = false) Integer start,
+      @RequestParam(required = false) Integer end
+  ) {
     List<RsEvent> res;
-    if (start != null && end != null) {
-      res =this.rsList.subList(start - 1, end);
-    } else  {
+    if (start == null && end == null) {
       res = this.rsList;
     }
+    else {
+      if (start > end || start < 1 || end > this.rsList.size()) {
+        throw new InvalidRequestParameterException();
+      }
+
+      res = this.rsList.subList(start - 1, end);
+    }
+
     return ResponseEntity.ok(res);
   }
 

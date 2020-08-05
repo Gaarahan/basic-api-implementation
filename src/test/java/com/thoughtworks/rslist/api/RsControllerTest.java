@@ -234,4 +234,31 @@ class RsControllerTest {
     this.mockMvc.perform(post("/rs/add").content(ignoreAnnotationsMapper.writeValueAsString(newRsEvent)).contentType(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isBadRequest());
   }
+
+
+  @Test
+  void should_got_invalid_params_error_when_pass_wrong_params() throws Exception {
+    this.mockMvc.perform(get("/rs/list?start=0&end=4"))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.error", is("invalid params")));
+
+    this.mockMvc.perform(get("/rs/list?start=1&end=4"))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.error", is("invalid params")));
+
+    this.mockMvc.perform(get("/rs/list?start=-1&end=2"))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.error", is("invalid params")));
+  }
+
+  @Test
+  void should_got_invalid_index_error_when_pass_wrong_index() throws Exception {
+    this.mockMvc.perform(get("/rs/-1"))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.error", is("invalid index")));
+
+    this.mockMvc.perform(get("/rs/7"))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.error", is("invalid index")));
+  }
 }
