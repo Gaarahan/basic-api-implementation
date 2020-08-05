@@ -39,16 +39,20 @@ class UserControllerTest {
     ObjectMapper objectMapper = new ObjectMapper();
     String userJson = objectMapper.writeValueAsString(curUser);
 
-    this.mockMvc.perform(post("/user").contentType(MediaType.APPLICATION_JSON).content(userJson))
+    this.mockMvc.perform(post("/users").contentType(MediaType.APPLICATION_JSON).content(userJson))
         .andExpect(status().isOk());
   }
 
   @Test
   void should_get_all_user() throws Exception {
     this.should_register_new_user();
-    this.mockMvc.perform(get("/user"))
+    this.mockMvc.perform(get("/users"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$", hasSize(1)))
-        .andExpect(jsonPath("$[0].name", is("han")));
+        .andExpect(jsonPath("$[0].user_name", is(curUser.getName())))
+        .andExpect(jsonPath("$[0].user_age" , is(curUser.getAge())))
+        .andExpect(jsonPath("$[0].user_gender", is(curUser.getGender())))
+        .andExpect(jsonPath("$[0].user_email", is(curUser.getEmail())))
+        .andExpect(jsonPath("$[0].user_phone", is(curUser.getPhone())));
   }
 }
