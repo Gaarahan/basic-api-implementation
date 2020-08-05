@@ -54,6 +54,8 @@ class RsListApplicationTests {
     this.mockMvc.perform(get("/rs/1"))
         .andExpect(jsonPath("$.eventName", is("rs1")))
         .andExpect(jsonPath("$.key", is("key")))
+
+        .andExpect(jsonPath("$", not(hasKey("user"))))
         .andExpect(status().isOk());
   }
 
@@ -69,6 +71,8 @@ class RsListApplicationTests {
         .andExpect(jsonPath("$[0].key", is("key")))
         .andExpect(jsonPath("$[1].key", is("key")))
         .andExpect(jsonPath("$[2].key", is("key")))
+
+        .andExpect(jsonPath("$[0]", not(hasKey("user"))))
 
         .andExpect(status().isOk());
   }
