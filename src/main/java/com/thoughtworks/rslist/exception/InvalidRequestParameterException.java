@@ -3,12 +3,12 @@ package com.thoughtworks.rslist.exception;
 /**
  * @author gaarahan
  */
-public class InvalidIndexException extends RuntimeException{
+public class InvalidRequestParameterException extends RuntimeException{
 
   private final String errMes;
 
-  public InvalidIndexException() {
-    this.errMes = "invalid index";
+  public InvalidRequestParameterException() {
+    this.errMes = "invalid params";
   }
 
   @Override
