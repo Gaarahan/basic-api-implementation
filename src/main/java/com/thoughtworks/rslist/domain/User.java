@@ -1,15 +1,31 @@
-package com.thoughtworks.rslist.api;
+package com.thoughtworks.rslist.domain;
+
+import javax.validation.constraints.*;
 
 /**
  * @author gaarahan
  */
 public class User {
 
+  @NotNull
+  @Size(max = 8)
   private String name;
+
+  @NotNull
+  @Min(18)
+  @Max(100)
   private int age;
+
+  @NotNull
   private String gender;
+
+  @Email
   private String email;
+
+  @Pattern(regexp = "1[3-9][0-9]{9}")
   private String phone;
+
+  public User() { }
 
   public User(String name, int age, String gender, String email, String phone) {
     this.name = name;
