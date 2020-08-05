@@ -29,7 +29,7 @@ class UserControllerTest {
 
   @BeforeEach
   private void setup () {
-    this.mockMvc = MockMvcBuilders.standaloneSetup(new RsController()).build();
+    this.mockMvc = MockMvcBuilders.standaloneSetup(new UserController()).build();
     this.curUser = new User("han", 21, "male", "test@test.com", "13755556666");
   }
 
