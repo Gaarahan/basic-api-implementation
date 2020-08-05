@@ -1,9 +1,12 @@
 package com.thoughtworks.rslist.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.thoughtworks.rslist.domain.RsEvent;
+import com.thoughtworks.rslist.domain.User;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,7 +43,7 @@ public class RsController {
   }
 
   @PostMapping("rs/add")
-  public ResponseEntity<Object> addNewRsEvent (@RequestBody RsEvent event) {
+  public ResponseEntity<Object> addNewRsEvent (@RequestBody @Valid RsEvent event) {
     this.rsList.add(event);
     return ResponseEntity.created(URI.create("")).build();
   }
