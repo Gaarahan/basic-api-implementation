@@ -1,5 +1,6 @@
 package com.thoughtworks.rslist.api;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,6 +12,7 @@ import java.util.List;
 public class RsController {
   private final List<RsEvent> rsList;
   private User user;
+  private ObjectMapper objectMapper;
 
   public RsController() {
     this.rsList = new ArrayList<>();
@@ -18,19 +20,23 @@ public class RsController {
     this.rsList.add(new RsEvent("rs1", "key", this.user));
     this.rsList.add(new RsEvent("rs2", "key", this.user));
     this.rsList.add(new RsEvent("rs3", "key", this.user));
+    this.objectMapper = new ObjectMapper();
   }
 
   @GetMapping("rs/{index}")
-  public RsEvent getRsEventOfIndex (@PathVariable int index) {
-    return this.rsList.get(index - 1);
+  public ResponseEntity<RsEvent> getRsEventOfIndex (@PathVariable int index) {
+    return ResponseEntity.ok(this.rsList.get(index - 1));
   }
 
   @GetMapping("rs/list")
-  public List<RsEvent> getSplitOrAllRsList (@RequestParam(required = false) Integer start, @RequestParam(required = false) Integer end) {
+  public ResponseEntity<List<RsEvent>> getSplitOrAllRsList (@RequestParam(required = false) Integer start, @RequestParam(required = false) Integer end) {
+    List<RsEvent> res;
     if (start != null && end != null) {
-      return this.rsList.subList(start - 1, end);
+      res =this.rsList.subList(start - 1, end);
+    } else  {
+      res = this.rsList;
     }
-    return this.rsList;
+    return ResponseEntity.ok(res);
   }
 
   @PostMapping("rs/add")

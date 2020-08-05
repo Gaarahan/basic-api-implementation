@@ -9,6 +9,12 @@ public class RsEvent {
   private String key;
   private User user;
 
+  public RsEvent() {
+    this.eventName = "";
+    this.key = "";
+    this.user = null;
+  }
+
   public RsEvent(String eventName, String key, User user) {
     this.eventName = eventName;
     this.key = key;
