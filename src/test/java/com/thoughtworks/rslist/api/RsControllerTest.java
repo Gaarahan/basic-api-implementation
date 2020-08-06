@@ -3,6 +3,7 @@ package com.thoughtworks.rslist.api;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.thoughtworks.rslist.api.RsController;
+import com.thoughtworks.rslist.component.RsExceptionHandler;
 import com.thoughtworks.rslist.domain.RsEvent;
 import com.thoughtworks.rslist.domain.User;
 import org.junit.jupiter.api.Assertions;
@@ -18,6 +19,7 @@ import java.util.ArrayList;
 
 import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -32,7 +34,9 @@ class RsControllerTest {
 
   @BeforeEach
   private void setup () {
-    this.mockMvc = MockMvcBuilders.standaloneSetup(new RsController()).build();
+    this.mockMvc = MockMvcBuilders.standaloneSetup(new RsController())
+        .setControllerAdvice(new RsExceptionHandler())
+        .build();
     this.curUser = new User("han", 21, "male", "test@test.com", "13755556666");
     this.rsEvent = new RsEvent("rs-new", "key", curUser);
 
