@@ -1,13 +1,13 @@
 package com.thoughtworks.rslist.component;
 
-
+import com.thoughtworks.rslist.domain.Error;
+import com.thoughtworks.rslist.domain.User;
 import com.thoughtworks.rslist.exception.InvalidIndexException;
 import com.thoughtworks.rslist.exception.InvalidRequestParameterException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-
-import java.security.InvalidParameterException;
 
 /**
  * @author gaarahan
@@ -16,12 +16,24 @@ import java.security.InvalidParameterException;
 public class RsExceptionHandler {
 
   @ExceptionHandler({
-      InvalidParameterException.class,
       InvalidIndexException.class,
       InvalidRequestParameterException.class
   })
   public ResponseEntity<Error> handleException (Exception e) {
     Error error = new Error(e.getMessage());
+    return ResponseEntity.badRequest().body(error);
+  }
+
+  @ExceptionHandler({
+      MethodArgumentNotValidException.class
+  })
+  public ResponseEntity<Error> handleMethodArgsHandler (MethodArgumentNotValidException e) {
+    Error error;
+    if (e.getBindingResult().getTarget() instanceof User) {
+      error = new Error("invalid user");
+    } else {
+      error = new Error("invalid param");
+    }
     return ResponseEntity.badRequest().body(error);
   }
 }

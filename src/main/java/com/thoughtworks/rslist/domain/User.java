@@ -29,7 +29,7 @@ public class User {
   private String email;
 
   @JsonProperty("user_phone")
-  @Pattern(regexp = "1[3-9][0-9]{9}")
+  @Pattern(regexp = "1[3-9]\\d{9}")
   private String phone;
 
   public User() { }
