@@ -4,6 +4,7 @@ import com.thoughtworks.rslist.domain.Error;
 import com.thoughtworks.rslist.domain.User;
 import com.thoughtworks.rslist.exception.InvalidIndexException;
 import com.thoughtworks.rslist.exception.InvalidRequestParameterException;
+import com.thoughtworks.rslist.exception.InvalidUserIdException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -17,7 +18,8 @@ public class RsExceptionHandler {
 
   @ExceptionHandler({
       InvalidIndexException.class,
-      InvalidRequestParameterException.class
+      InvalidRequestParameterException.class,
+      InvalidUserIdException.class
   })
   public ResponseEntity<Error> handleException (Exception e) {
     Error error = new Error(e.getMessage());
