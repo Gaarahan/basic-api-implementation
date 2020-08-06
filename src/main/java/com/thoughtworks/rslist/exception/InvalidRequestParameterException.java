@@ -8,7 +8,7 @@ public class InvalidRequestParameterException extends RuntimeException{
   private final String errMes;
 
   public InvalidRequestParameterException() {
-    this.errMes = "invalid params";
+    this.errMes = "invalid request param";
   }
 
   @Override
