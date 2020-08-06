@@ -36,12 +36,22 @@ class UserControllerTest {
 
   @Autowired
   private UserRepository userRepository;
+  private final int initUserCount = 5;
 
   @BeforeEach
   private void setup () {
     this.mockMvc = MockMvcBuilders.standaloneSetup(new UserController(this.userRepository)).build();
-    this.curUser = new User("han", 21, "male", "test@test.com", "13755556666");
+    this.curUser = new User("han0", 21, "male", "test@test.com", "13755556666");
     this.mapper = new ModelMapper();
+    this.initUserTable();
+  }
+
+  private void initUserTable() {
+    User user = new User("han0", 21, "male", "test@test.com", "13755556666");
+    for (int i = 0; i < this.initUserCount; i ++) {
+      user.setName("han" + i);
+      this.userRepository.save(mapper.map(user, UserDto.class));
+    }
   }
 
   @Test
@@ -63,7 +73,25 @@ class UserControllerTest {
     this.mockMvc.perform(get("/users"))
         .andExpect(status().isOk());
     List<UserDto> allUser = this.userRepository.findAll();
-    assertEquals(1, allUser.size());
+    assertEquals(this.initUserCount, allUser.size());
     assertEquals(this.curUser, mapper.map(allUser.get(0), User.class));
+  }
+
+  @Test
+  void should_get_user_by_id() throws Exception {
+    int id = 0;
+    this.mockMvc.perform(get("/users/" + id))
+        .andExpect(status().isOk());
+    List<UserDto> allUser = this.userRepository.findAll();
+    assertEquals(this.curUser, mapper.map(allUser.get(id), User.class));
+  }
+
+  @Test
+  void should_delete_user_by_id() throws Exception {
+    int id = 0;
+    this.mockMvc.perform(get("/users/" + id))
+        .andExpect(status().isOk());
+    List<UserDto> allUser = this.userRepository.findAll();
+    assertEquals(this.curUser, mapper.map(allUser.get(id), User.class));
   }
 }
