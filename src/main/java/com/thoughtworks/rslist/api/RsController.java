@@ -13,19 +13,19 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @author gaarahan
+ */
 @RestController
 public class RsController {
   private final List<RsEvent> rsList;
-  private User user;
-  private ObjectMapper objectMapper;
 
   public RsController() {
     this.rsList = new ArrayList<>();
-    this.user = new User("han", 21, "male", "gaarahan@foxmail.com", "12455556666");
-    this.rsList.add(new RsEvent("rs1", "key", this.user));
-    this.rsList.add(new RsEvent("rs2", "key", this.user));
-    this.rsList.add(new RsEvent("rs3", "key", this.user));
-    this.objectMapper = new ObjectMapper();
+    User user = new User("han", 21, "male", "gaarahan@foxmail.com", "12455556666");
+    this.rsList.add(new RsEvent("rs1", "key", user));
+    this.rsList.add(new RsEvent("rs2", "key", user));
+    this.rsList.add(new RsEvent("rs3", "key", user));
   }
 
   @GetMapping("rs/{index}")
@@ -44,6 +44,9 @@ public class RsController {
     List<RsEvent> res;
     if (start == null && end == null) {
       res = this.rsList;
+    }
+    else if (start == null || end == null) {
+      throw new InvalidRequestParameterException();
     }
     else {
       if (start > end || start < 1 || end > this.rsList.size()) {
