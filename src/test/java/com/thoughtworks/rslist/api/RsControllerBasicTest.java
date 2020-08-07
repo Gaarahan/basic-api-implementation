@@ -104,6 +104,17 @@ class RsControllerBasicTest {
   }
 
   @Test
+  void should_get_bad_request_when_add_new_rs_event_for_not_exist_user() throws Exception {
+    RsEvent newRsEvent = new RsEvent("rs-new", "new", 100);
+    String newRsEventStr = mapper.writeValueAsString(newRsEvent);
+    this.mockMvc.perform(
+        post("/rs/add").content(newRsEventStr)
+            .contentType(MediaType.APPLICATION_JSON)
+    )
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
   void should_update_specific_rs_event() throws Exception {
 
     this.mockMvc.perform(patch("/rs/update?index=1&eventName=rs1-modified&key=key1-modified"))
@@ -130,7 +141,8 @@ class RsControllerBasicTest {
     List<RsEvent> expectList = this.getCurrentRsList();
     expectList.remove(0);
 
-    this.mockMvc.perform(delete("/rs/1"))
+    int firstRsEventId = this.rsEventRepository.findAll().get(0).getId();
+    this.mockMvc.perform(delete("/rs/" + firstRsEventId))
         .andExpect(status().isOk());
 
     List<RsEvent> actualList = this.getCurrentRsList();

@@ -67,6 +67,10 @@ public class RsController {
   @Transactional
   @DeleteMapping("/rs/{id}")
   public void deleteRsEventById(@PathVariable int id) {
-    this.rsEventRepository.deleteById(id);
+    if (this.rsEventRepository.findById(id).isPresent()) {
+      this.rsEventRepository.deleteById(id);
+    } else {
+      throw new InvalidUserIdException();
+    }
   }
 }
