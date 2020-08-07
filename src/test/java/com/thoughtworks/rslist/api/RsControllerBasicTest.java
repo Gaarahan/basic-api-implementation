@@ -1,22 +1,29 @@
 package com.thoughtworks.rslist.api;
 
-import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.thoughtworks.rslist.component.RsExceptionHandler;
 import com.thoughtworks.rslist.domain.RsEvent;
 import com.thoughtworks.rslist.domain.User;
-import org.junit.jupiter.api.Assertions;
+import com.thoughtworks.rslist.dto.RsEventDto;
+import com.thoughtworks.rslist.dto.UserDto;
+import com.thoughtworks.rslist.repository.RsEventRepository;
+import com.thoughtworks.rslist.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.hasSize;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -26,138 +33,125 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class RsControllerBasicTest {
 
   private MockMvc mockMvc;
+  private ObjectMapper mapper;
+  private ModelMapper modelMapper;
+  @Autowired
+  RsEventRepository rsEventRepository;
+  @Autowired
+  UserRepository userRepository;
 
   @BeforeEach
-  private void setup () {
-    this.mockMvc = MockMvcBuilders.standaloneSetup(new RsController())
+  void setUp () {
+    this.mockMvc = MockMvcBuilders.standaloneSetup(new RsController(this.rsEventRepository, this.userRepository))
         .setControllerAdvice(new RsExceptionHandler())
         .build();
+    this.mapper = new ObjectMapper();
+    this.modelMapper = new ModelMapper();
+    this.userRepository.deleteAll();
+    this.initTestTable();
   }
 
-  private ArrayList<RsEvent> getCurrentRsList () throws Exception {
-    String res = this.mockMvc.perform(get("/rs/list"))
-        .andReturn().getResponse().getContentAsString();
-    @SuppressWarnings("unchecked")
-    ArrayList<RsEvent> curRsList = (ArrayList<RsEvent>) new ObjectMapper().readValue(res, ArrayList.class);
-
-    return curRsList;
+  private void initTestTable() {
+    User curUser = new User("han1", 21, "male", "test@test.com", "13755556666");
+    UserDto newUser = modelMapper.map(curUser, UserDto.class);
+    this.userRepository.save(newUser);
+    UserDto u = this.userRepository.findAll().get(0);
+    RsEventDto rs = modelMapper.map(new RsEvent("rs-new", "new", u.getId()), RsEventDto.class);
+    rs.setUserDto(u);
+    this.rsEventRepository.save(rs);
   }
 
-  @Test
-  void should_return_one_rs_event () throws Exception {
-    this.mockMvc.perform(get("/rs/1"))
-        .andExpect(jsonPath("$.eventName", is("rs1")))
-        .andExpect(jsonPath("$.key", is("key")))
-
-        .andExpect(jsonPath("$", not(hasKey("user"))))
-        .andExpect(status().isOk());
+  private List<RsEvent> getCurrentRsList () {
+    return this.rsEventRepository.findAll().stream()
+        .map(rsEventDto -> modelMapper.map(rsEventDto, RsEvent.class))
+        .collect(Collectors.toList());
   }
 
   @Test
   void should_return_all_rs_list () throws Exception {
     this.mockMvc.perform(get("/rs/list"))
-        .andExpect(jsonPath("$", hasSize(3)))
-
-        .andExpect(jsonPath("$[0].eventName", is("rs1")))
-        .andExpect(jsonPath("$[1].eventName", is("rs2")))
-        .andExpect(jsonPath("$[2].eventName", is("rs3")))
-
-        .andExpect(jsonPath("$[0].key", is("key")))
-        .andExpect(jsonPath("$[1].key", is("key")))
-        .andExpect(jsonPath("$[2].key", is("key")))
-
-        .andExpect(jsonPath("$[0]", not(hasKey("user"))))
-
+        .andExpect(jsonPath("$", hasSize(1)))
         .andExpect(status().isOk());
-  }
 
-  @Test
-  void should_return_sub_rs_list () throws Exception {
-    this.mockMvc.perform(get("/rs/list?start=1&end=2"))
-        .andExpect(jsonPath("$", hasSize(2)))
-
-        .andExpect(jsonPath("$[0].eventName", is("rs1")))
-        .andExpect(jsonPath("$[1].eventName", is("rs2")))
-
-        .andExpect(jsonPath("$[0].key", is("key")))
-        .andExpect(jsonPath("$[1].key", is("key")))
-
-        .andExpect(status().isOk());
-    this.mockMvc.perform(get("/rs/list?start=2&end=3"))
-        .andExpect(jsonPath("$", hasSize(2)))
-
-        .andExpect(jsonPath("$[0].eventName", is("rs2")))
-        .andExpect(jsonPath("$[1].eventName", is("rs3")))
-
-        .andExpect(jsonPath("$[0].key", is("key")))
-        .andExpect(jsonPath("$[1].key", is("key")))
-
-        .andExpect(status().isOk());
-    this.mockMvc.perform(get("/rs/list?start=1&end=3"))
-        .andExpect(jsonPath("$", hasSize(3)))
-
-        .andExpect(jsonPath("$[0].eventName", is("rs1")))
-        .andExpect(jsonPath("$[1].eventName", is("rs2")))
-        .andExpect(jsonPath("$[2].eventName", is("rs3")))
-
-        .andExpect(jsonPath("$[0].key", is("key")))
-        .andExpect(jsonPath("$[1].key", is("key")))
-        .andExpect(jsonPath("$[2].key", is("key")))
-
-        .andExpect(status().isOk());
   }
 
   @Test
   void should_add_new_rs_event() throws Exception {
-    String newRsEventStr = "{\"eventName\":\"rs-new\",\"key\":\"new\",\"user\":{\"user_name\":\"han\",\"user_age\":21,\"user_gender\":\"male\",\"user_email\":\"test@test.com\",\"user_phone\":\"13755556666\"}}";
+    this.rsEventRepository.deleteAll();
 
+    UserDto u = this.userRepository.findAll().get(0);
+    RsEvent newRsEvent = new RsEvent("rs-new", "new", u.getId());
+    String newRsEventStr = mapper.writeValueAsString(newRsEvent);
     this.mockMvc.perform(
         post("/rs/add").content(newRsEventStr)
             .contentType(MediaType.APPLICATION_JSON)
     )
         .andExpect(status().isCreated());
 
-    this.mockMvc.perform(get("/rs/list"))
-        .andExpect(jsonPath("$", hasSize(4)))
+    List<RsEvent> rsEventList = this.getCurrentRsList();
+    assertEquals(newRsEvent, rsEventList.get(rsEventList.size() - 1));
+  }
 
-        .andExpect(jsonPath("$[3].eventName", is("rs-new")))
-        .andExpect(jsonPath("$[3].key", is("new")))
-        .andExpect(jsonPath("$[3]", not(hasKey("user"))))
-
-        .andExpect(status().isOk());
+  @Test
+  void should_get_bad_request_when_add_new_rs_event_for_not_exist_user() throws Exception {
+    RsEvent newRsEvent = new RsEvent("rs-new", "new", 100);
+    String newRsEventStr = mapper.writeValueAsString(newRsEvent);
+    this.mockMvc.perform(
+        post("/rs/add").content(newRsEventStr)
+            .contentType(MediaType.APPLICATION_JSON)
+    )
+        .andExpect(status().isBadRequest());
   }
 
   @Test
   void should_update_specific_rs_event() throws Exception {
+    RsEventDto rs = this.rsEventRepository.findAll().get(0);
+    RsEvent newRsEvent = modelMapper.map(rs, RsEvent.class);
 
-    this.mockMvc.perform(patch("/rs/update?index=1&eventName=rs1-modified&key=key1-modified"))
-        .andExpect(status().isOk());
-    this.mockMvc.perform(patch("/rs/update?index=2&eventName=rs2-modified"))
-        .andExpect(status().isOk());
-    this.mockMvc.perform(patch("/rs/update?index=3&key=key3-modified"))
-        .andExpect(status().isOk());
+    newRsEvent.setEventName("rs-modified");
+    newRsEvent.setKeyWord("key-modified");
 
-    this.mockMvc.perform(get("/rs/list"))
-        .andExpect(jsonPath("$[0].eventName", is("rs1-modified")))
-        .andExpect(jsonPath("$[1].eventName", is("rs2-modified")))
-        .andExpect(jsonPath("$[2].eventName", is("rs3")))
-
-        .andExpect(jsonPath("$[0].key", is("key1-modified")))
-        .andExpect(jsonPath("$[1].key", is("key")))
-        .andExpect(jsonPath("$[2].key", is("key3-modified")))
-
+    this.mockMvc.perform(
+        patch("/rs/update")
+            .param("id", String.valueOf(rs.getId()))
+            .param("eventName", newRsEvent.getEventName())
+            .param("keyWord", newRsEvent.getKeyWord())
+    )
         .andExpect(status().isOk());
+    RsEventDto updatedRsEvent = this.rsEventRepository.findById(rs.getId()).get();
+    assertEquals(newRsEvent, modelMapper.map(updatedRsEvent, RsEvent.class));
+
+    newRsEvent.setEventName("rs-modified");
+    newRsEvent.setKeyWord("key-modified-again");
+
+    this.mockMvc.perform(
+        patch("/rs/update")
+            .param("id", String.valueOf(rs.getId()))
+            .param("keyWord", newRsEvent.getKeyWord())
+    )
+        .andExpect(status().isOk());
+    updatedRsEvent = this.rsEventRepository.findById(rs.getId()).get();
+    assertEquals(newRsEvent, modelMapper.map(updatedRsEvent, RsEvent.class));
+
+    newRsEvent.setEventName("rs-modified-again");
+    newRsEvent.setKeyWord("key-modified-again");
+
+    this.mockMvc.perform(
+        patch("/rs/update")
+            .param("id", String.valueOf(rs.getId()))
+            .param("eventName", newRsEvent.getEventName())
+    )
+        .andExpect(status().isOk());
+    updatedRsEvent = this.rsEventRepository.findById(rs.getId()).get();
+    assertEquals(newRsEvent, modelMapper.map(updatedRsEvent, RsEvent.class));
   }
 
   @Test
-  void should_delete_specific_rs_event() throws Exception {
-    ArrayList<RsEvent> expectList = this.getCurrentRsList();
-    expectList.remove(0);
-
-    this.mockMvc.perform(delete("/rs/1"))
+  void should_delete_specific_rs_event_by_id() throws Exception {
+    int firstRsEventId = this.rsEventRepository.findAll().get(0).getId();
+    this.mockMvc.perform(delete("/rs/" + firstRsEventId))
         .andExpect(status().isOk());
 
-    ArrayList<RsEvent> actualList = this.getCurrentRsList();
-    Assertions.assertEquals(expectList, actualList);
+    assertFalse(this.rsEventRepository.findById(firstRsEventId).isPresent());
   }
 }

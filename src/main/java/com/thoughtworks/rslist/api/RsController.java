@@ -1,84 +1,82 @@
 package com.thoughtworks.rslist.api;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.thoughtworks.rslist.domain.RsEvent;
-import com.thoughtworks.rslist.domain.User;
-import com.thoughtworks.rslist.exception.InvalidIndexException;
-import com.thoughtworks.rslist.exception.InvalidRequestParameterException;
+import com.thoughtworks.rslist.dto.RsEventDto;
+import com.thoughtworks.rslist.dto.UserDto;
+import com.thoughtworks.rslist.exception.InvalidIdException;
+import com.thoughtworks.rslist.repository.RsEventRepository;
+import com.thoughtworks.rslist.repository.UserRepository;
+import org.modelmapper.ModelMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.transaction.Transactional;
 import javax.validation.Valid;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
+/**
+ * @author gaarahan
+ */
 @RestController
 public class RsController {
-  private final List<RsEvent> rsList;
-  private User user;
-  private ObjectMapper objectMapper;
+  ModelMapper modelMapper = new ModelMapper();
+  UserRepository userRepository;
+  RsEventRepository rsEventRepository;
 
-  public RsController() {
-    this.rsList = new ArrayList<>();
-    this.user = new User("han", 21, "male", "gaarahan@foxmail.com", "12455556666");
-    this.rsList.add(new RsEvent("rs1", "key", this.user));
-    this.rsList.add(new RsEvent("rs2", "key", this.user));
-    this.rsList.add(new RsEvent("rs3", "key", this.user));
-    this.objectMapper = new ObjectMapper();
-  }
-
-  @GetMapping("rs/{index}")
-  public ResponseEntity<RsEvent> getRsEventOfIndex (@PathVariable int index) {
-    if (index < 1 || index > this.rsList.size()) {
-      throw new InvalidIndexException();
-    }
-    return ResponseEntity.ok(this.rsList.get(index - 1));
+  public RsController(RsEventRepository rsEventRepository, UserRepository userRepository) {
+    this.rsEventRepository = rsEventRepository;
+    this.userRepository = userRepository;
   }
 
   @GetMapping("rs/list")
-  public ResponseEntity<List<RsEvent>> getSplitOrAllRsList (
-      @RequestParam(required = false) Integer start,
-      @RequestParam(required = false) Integer end
-  ) {
-    List<RsEvent> res;
-    if (start == null && end == null) {
-      res = this.rsList;
-    }
-    else {
-      if (start > end || start < 1 || end > this.rsList.size()) {
-        throw new InvalidRequestParameterException();
-      }
-
-      res = this.rsList.subList(start - 1, end);
-    }
-
-    return ResponseEntity.ok(res);
+  public ResponseEntity<List<RsEvent>> getSplitOrAllRsList () {
+    List<RsEvent> collect = this.rsEventRepository.findAll().stream().map(rsEventDto -> this.modelMapper.map(rsEventDto, RsEvent.class)).collect(Collectors.toList());
+    return ResponseEntity.ok(collect);
   }
 
   @PostMapping("rs/add")
   public ResponseEntity<Object> addNewRsEvent (@RequestBody @Valid RsEvent event) {
-    this.rsList.add(event);
+    Optional<UserDto> userDto = this.userRepository.findById(event.getUserId());
+    if (!userDto.isPresent()) {
+      throw new InvalidIdException();
+    }
+
+    RsEventDto newRs = this.modelMapper.map(event, RsEventDto.class);
+    newRs.setUserDto(userDto.get());
+    this.rsEventRepository.save(newRs);
     return ResponseEntity.created(URI.create("")).build();
   }
 
   @PatchMapping("rs/update")
-  public void updateRsEvent (@RequestParam Integer index,
+  public void updateRsEvent (@RequestParam Integer id,
                              @RequestParam(required = false) String eventName,
-                             @RequestParam(required = false) String key) {
+                             @RequestParam(required = false) String keyWord) {
 
-    RsEvent targetRsEvent = this.rsList.get(index - 1);
+    Optional<RsEventDto> targetRsEventDtoCon = this.rsEventRepository.findById(id);
+    if (!targetRsEventDtoCon.isPresent()) {
+      throw new InvalidIdException();
+    }
+    RsEventDto rsEventDto = targetRsEventDtoCon.get();
     if (eventName != null) {
-      targetRsEvent.setEventName(eventName);
+      rsEventDto.setEventName(eventName);
     }
 
-    if (key!= null) {
-      targetRsEvent.setKey(key);
+    if (keyWord!= null) {
+      rsEventDto.setKeyWord(keyWord);
     }
+    this.rsEventRepository.save(rsEventDto);
   }
 
-  @DeleteMapping("/rs/{index}")
-  public void deleteRsEvent(@PathVariable int index) {
-    this.rsList.remove(index - 1);
+  @Transactional
+  @DeleteMapping("/rs/{id}")
+  public void deleteRsEventById(@PathVariable int id) {
+    if (this.rsEventRepository.findById(id).isPresent()) {
+      this.rsEventRepository.deleteById(id);
+    } else {
+      throw new InvalidIdException();
+    }
   }
 }
