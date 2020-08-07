@@ -18,12 +18,12 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -39,8 +39,6 @@ class RsControllerBasicTest {
   RsEventRepository rsEventRepository;
   @Autowired
   UserRepository userRepository;
-  private final int initRsEventCount = 3;
-  private List<RsEvent> initRsEvent;
 
   @BeforeEach
   private void setup () {
@@ -50,6 +48,7 @@ class RsControllerBasicTest {
     this.mapper = new ObjectMapper();
     this.modelMapper = new ModelMapper();
     this.userRepository.deleteAll();
+    this.initTestTable();
   }
 
   private void initTestTable() {
@@ -71,22 +70,17 @@ class RsControllerBasicTest {
   @Test
   void should_return_all_rs_list () throws Exception {
     this.mockMvc.perform(get("/rs/list"))
-        .andExpect(jsonPath("$", hasSize(this.initRsEventCount)))
-
-        .andExpect(jsonPath("$[0].eventName", is("rs0")))
-        .andExpect(jsonPath("$[1].eventName", is("rs1")))
-        .andExpect(jsonPath("$[2].eventName", is("rs2")))
-
-        .andExpect(jsonPath("$[0].keyWord", is("key")))
-        .andExpect(jsonPath("$[1].keyWord", is("key")))
-        .andExpect(jsonPath("$[2].keyWord", is("key")))
-
+        .andExpect(jsonPath("$", hasSize(1)))
         .andExpect(status().isOk());
+
   }
 
   @Test
   void should_add_new_rs_event() throws Exception {
-    RsEvent newRsEvent = new RsEvent("rs-new", "new", 1);
+    this.rsEventRepository.deleteAll();
+
+    UserDto u = this.userRepository.findAll().get(0);
+    RsEvent newRsEvent = new RsEvent("rs-new", "new", u.getId());
     String newRsEventStr = mapper.writeValueAsString(newRsEvent);
     this.mockMvc.perform(
         post("/rs/add").content(newRsEventStr)
@@ -95,7 +89,7 @@ class RsControllerBasicTest {
         .andExpect(status().isCreated());
 
     List<RsEvent> rsEventList = this.getCurrentRsList();
-    assertEquals(newRsEvent, rsEventList.get(this.initRsEventCount));
+    assertEquals(newRsEvent, rsEventList.get(rsEventList.size() - 1));
   }
 
   @Test
@@ -111,7 +105,6 @@ class RsControllerBasicTest {
 
   @Test
   void should_update_specific_rs_event() throws Exception {
-    this.initTestTable();
     RsEventDto rs = this.rsEventRepository.findAll().get(0);
     RsEvent newRsEvent = modelMapper.map(rs, RsEvent.class);
 
@@ -155,14 +148,10 @@ class RsControllerBasicTest {
 
   @Test
   void should_delete_specific_rs_event_by_id() throws Exception {
-    List<RsEvent> expectList = this.getCurrentRsList();
-    expectList.remove(0);
-
     int firstRsEventId = this.rsEventRepository.findAll().get(0).getId();
     this.mockMvc.perform(delete("/rs/" + firstRsEventId))
         .andExpect(status().isOk());
 
-    List<RsEvent> actualList = this.getCurrentRsList();
-    assertEquals(expectList, actualList);
+    assertFalse(this.rsEventRepository.findById(firstRsEventId).isPresent());
   }
 }
