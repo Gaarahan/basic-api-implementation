@@ -21,7 +21,7 @@ import java.sql.Timestamp;
 public class VoteDto {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private int id;
+  private Integer id;
   private int castVoteNum;
   private Timestamp voteTime;
 

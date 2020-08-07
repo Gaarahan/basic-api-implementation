@@ -7,6 +7,7 @@ import com.thoughtworks.rslist.domain.User;
 import com.thoughtworks.rslist.domain.Vote;
 import com.thoughtworks.rslist.dto.RsEventDto;
 import com.thoughtworks.rslist.dto.UserDto;
+import com.thoughtworks.rslist.dto.VoteDto;
 import com.thoughtworks.rslist.repository.RsEventRepository;
 import com.thoughtworks.rslist.repository.UserRepository;
 import com.thoughtworks.rslist.repository.VoteRepository;
@@ -23,10 +24,17 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -90,6 +98,40 @@ class VoteControllerTest {
 
     assertEquals(voteCount, userVoteBefore - userVoteAfter);
     assertEquals(voteCount, rsVoteAfter - rsVoteBefore);
+  }
+
+  @Test
+  void should_get_vote_between_time() throws Exception {
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    LocalDateTime timeBase = LocalDateTime.now();
+
+    Vote voteBefore = new Vote(this.rsId, this.uId, 1, Timestamp.valueOf(timeBase));
+    String timeStart = timeBase.plusSeconds(1).format(formatter);
+    Vote voteBetween1 = new Vote(this.rsId, this.uId, 1, Timestamp.valueOf(timeBase.plusSeconds(2)));
+    Vote voteBetween2 = new Vote(this.rsId, this.uId, 1, Timestamp.valueOf(timeBase.plusSeconds(3)));
+    Vote voteBetween3 = new Vote(this.rsId, this.uId, 1, Timestamp.valueOf(timeBase.plusSeconds(4)));
+    Vote voteBetween4 = new Vote(this.rsId, this.uId, 1, Timestamp.valueOf(timeBase.plusSeconds(5)));
+    String timeEnd = timeBase.plusSeconds(6).format(formatter);
+    Vote voteAfter = new Vote(this.rsId, this.uId, 1, Timestamp.valueOf(timeBase.plusSeconds(7)));
+
+
+    List<VoteDto> voteDtoBetweenList = Stream.of(voteBefore, voteBetween1, voteBetween2, voteBetween3, voteBetween4, voteAfter)
+        .map(vote -> modelMapper.map(vote, VoteDto.class))
+        .peek(voteDto -> {
+          voteDto.setId(null);
+          voteDto.setRsEventDto(this.rsEventRepository.findById(this.rsId).get());
+          voteDto.setUserDto(this.userRepository.findById(this.uId).get());
+        })
+        .collect(Collectors.toList());
+    this.voteRepository.saveAll(voteDtoBetweenList);
+
+    this.mockMvc.perform(
+        get("/rs/vote")
+            .param("startTime", timeStart)
+            .param("endTime", timeEnd)
+    )
+        .andExpect(jsonPath("$", hasSize(4)))
+        .andExpect(status().isOk());
   }
 }
 

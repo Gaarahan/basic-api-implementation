@@ -3,8 +3,7 @@ package com.thoughtworks.rslist.exception;
 public class RsSystemException extends RuntimeException {
   private final String errMsg;
 
-  public RsSystemException(String message, String errMsg) {
-    super(message);
+  public RsSystemException(String errMsg) {
     this.errMsg = errMsg;
   }
 
