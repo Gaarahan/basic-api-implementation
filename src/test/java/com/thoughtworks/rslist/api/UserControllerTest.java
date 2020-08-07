@@ -42,7 +42,7 @@ class UserControllerTest {
   private final int initUserCount = 3;
 
   @BeforeEach
-  private void setup () {
+  void setUp () {
     this.mockMvc = MockMvcBuilders.standaloneSetup(new UserController(this.userRepository)).build();
     this.curUser = new User("han1", 21, "male", "test@test.com", "13755556666");
     this.modelMapper = new ModelMapper();

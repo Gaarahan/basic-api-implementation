@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
-import java.util.List;
+import java.sql.Timestamp;
 
 /**
  * @author gaarahan
@@ -17,18 +17,17 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name="rs_event")
-public class RsEventDto {
+@Table(name="vote")
+public class VoteDto {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private int id;
-  private String eventName;
-  private String keyWord;
-  private int voteNum = 0;
+  private int castVoteNum;
+  private Timestamp voteTime;
 
   @ManyToOne
   private UserDto userDto;
 
-  @OneToMany(mappedBy = "rsEventDto")
-  private List<VoteDto> voteDtos;
+  @ManyToOne
+  private RsEventDto rsEventDto;
 }

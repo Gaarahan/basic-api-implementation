@@ -3,7 +3,7 @@ package com.thoughtworks.rslist.api;
 import com.thoughtworks.rslist.domain.RsEvent;
 import com.thoughtworks.rslist.dto.RsEventDto;
 import com.thoughtworks.rslist.dto.UserDto;
-import com.thoughtworks.rslist.exception.InvalidUserIdException;
+import com.thoughtworks.rslist.exception.InvalidIdException;
 import com.thoughtworks.rslist.repository.RsEventRepository;
 import com.thoughtworks.rslist.repository.UserRepository;
 import org.modelmapper.ModelMapper;
@@ -41,7 +41,7 @@ public class RsController {
   public ResponseEntity<Object> addNewRsEvent (@RequestBody @Valid RsEvent event) {
     Optional<UserDto> userDto = this.userRepository.findById(event.getUserId());
     if (!userDto.isPresent()) {
-      throw new InvalidUserIdException();
+      throw new InvalidIdException();
     }
 
     RsEventDto newRs = this.modelMapper.map(event, RsEventDto.class);
@@ -57,7 +57,7 @@ public class RsController {
 
     Optional<RsEventDto> targetRsEventDtoCon = this.rsEventRepository.findById(id);
     if (!targetRsEventDtoCon.isPresent()) {
-      throw new InvalidUserIdException();
+      throw new InvalidIdException();
     }
     RsEventDto rsEventDto = targetRsEventDtoCon.get();
     if (eventName != null) {
@@ -76,7 +76,7 @@ public class RsController {
     if (this.rsEventRepository.findById(id).isPresent()) {
       this.rsEventRepository.deleteById(id);
     } else {
-      throw new InvalidUserIdException();
+      throw new InvalidIdException();
     }
   }
 }

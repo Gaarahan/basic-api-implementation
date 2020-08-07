@@ -3,7 +3,7 @@ package com.thoughtworks.rslist.api;
 import com.thoughtworks.rslist.domain.User;
 import com.thoughtworks.rslist.dto.UserDto;
 import com.thoughtworks.rslist.exception.InvalidIndexException;
-import com.thoughtworks.rslist.exception.InvalidUserIdException;
+import com.thoughtworks.rslist.exception.InvalidIdException;
 import com.thoughtworks.rslist.repository.UserRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.ResponseEntity;
@@ -44,11 +44,11 @@ public class UserController {
   @GetMapping("/users/{id}")
   public ResponseEntity<User> getUserById(@PathVariable Integer id) {
     if (id == null || id < 0) {
-      throw new InvalidUserIdException();
+      throw new InvalidIdException();
     }
     Optional<UserDto> userDto = this.userRepository.findById(id);
     if (!userDto.isPresent()) {
-      throw new InvalidUserIdException();
+      throw new InvalidIdException();
     }
     return ResponseEntity.ok(modelMapper.map(userDto.get(), User.class));
   }
@@ -62,7 +62,7 @@ public class UserController {
 
     Optional<UserDto> userDto = this.userRepository.findById(id);
     if (!userDto.isPresent()) {
-      throw new InvalidUserIdException();
+      throw new InvalidIdException();
     }
 
     this.userRepository.deleteById(id);

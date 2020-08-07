@@ -41,7 +41,7 @@ class RsControllerBasicTest {
   UserRepository userRepository;
 
   @BeforeEach
-  private void setup () {
+  void setUp () {
     this.mockMvc = MockMvcBuilders.standaloneSetup(new RsController(this.rsEventRepository, this.userRepository))
         .setControllerAdvice(new RsExceptionHandler())
         .build();

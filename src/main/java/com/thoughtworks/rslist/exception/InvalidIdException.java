@@ -1,10 +1,10 @@
 package com.thoughtworks.rslist.exception;
 
-public class InvalidUserIdException extends RuntimeException {
+public class InvalidIdException extends RuntimeException {
   private final String errMes;
 
-  public InvalidUserIdException() {
-    this.errMes = "invalid user id";
+  public InvalidIdException() {
+    this.errMes = "invalid id";
   }
 
   @Override

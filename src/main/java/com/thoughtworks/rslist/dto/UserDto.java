@@ -27,8 +27,11 @@ public class UserDto {
   private String gender;
   private String email;
   private String phone;
-  private int voteNum = 10;
+  private int restVote = 10;
 
   @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "userDto")
   private List<RsEventDto> rsEventDtos;
+
+  @OneToMany(mappedBy = "userDto")
+  private List<VoteDto> voteDtos;
 }
