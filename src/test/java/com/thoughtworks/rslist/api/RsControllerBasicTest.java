@@ -49,22 +49,17 @@ class RsControllerBasicTest {
         .build();
     this.mapper = new ObjectMapper();
     this.modelMapper = new ModelMapper();
-    this.initTestTable();
+    this.userRepository.deleteAll();
   }
 
   private void initTestTable() {
-    this.userRepository.deleteAll();
-
-    User user = new User("han0", 21, "male", "test@test.com", "13755556666");
-    this.userRepository.save(modelMapper.map(user, UserDto.class));
-
-    this.initRsEvent = new ArrayList<>();
-    RsEvent rsEvent = new RsEvent("rs", "key", 1);
-    for (int i = 0; i < this.initRsEventCount; i ++) {
-      rsEvent.setEventName("rs" + i);
-      this.initRsEvent.add(rsEvent);
-      this.rsEventRepository.save(modelMapper.map(rsEvent, RsEventDto.class));
-    }
+    User curUser = new User("han1", 21, "male", "test@test.com", "13755556666");
+    UserDto newUser = modelMapper.map(curUser, UserDto.class);
+    this.userRepository.save(newUser);
+    UserDto u = this.userRepository.findAll().get(0);
+    RsEventDto rs = modelMapper.map(new RsEvent("rs-new", "new", u.getId()), RsEventDto.class);
+    rs.setUserDto(u);
+    this.rsEventRepository.save(rs);
   }
 
   private List<RsEvent> getCurrentRsList () {
@@ -116,24 +111,46 @@ class RsControllerBasicTest {
 
   @Test
   void should_update_specific_rs_event() throws Exception {
+    this.initTestTable();
+    RsEventDto rs = this.rsEventRepository.findAll().get(0);
+    RsEvent newRsEvent = modelMapper.map(rs, RsEvent.class);
 
-    this.mockMvc.perform(patch("/rs/update?index=1&eventName=rs1-modified&key=key1-modified"))
-        .andExpect(status().isOk());
-    this.mockMvc.perform(patch("/rs/update?index=2&eventName=rs2-modified"))
-        .andExpect(status().isOk());
-    this.mockMvc.perform(patch("/rs/update?index=3&key=key3-modified"))
-        .andExpect(status().isOk());
+    newRsEvent.setEventName("rs-modified");
+    newRsEvent.setKeyWord("key-modified");
 
-    this.mockMvc.perform(get("/rs/list"))
-        .andExpect(jsonPath("$[0].eventName", is("rs1-modified")))
-        .andExpect(jsonPath("$[1].eventName", is("rs2-modified")))
-        .andExpect(jsonPath("$[2].eventName", is("rs3")))
-
-        .andExpect(jsonPath("$[0].key", is("key1-modified")))
-        .andExpect(jsonPath("$[1].key", is("key")))
-        .andExpect(jsonPath("$[2].key", is("key3-modified")))
-
+    this.mockMvc.perform(
+        patch("/rs/update")
+            .param("id", String.valueOf(rs.getId()))
+            .param("eventName", newRsEvent.getEventName())
+            .param("keyWord", newRsEvent.getKeyWord())
+    )
         .andExpect(status().isOk());
+    RsEventDto updatedRsEvent = this.rsEventRepository.findById(rs.getId()).get();
+    assertEquals(newRsEvent, modelMapper.map(updatedRsEvent, RsEvent.class));
+
+    newRsEvent.setEventName("rs-modified");
+    newRsEvent.setKeyWord("key-modified-again");
+
+    this.mockMvc.perform(
+        patch("/rs/update")
+            .param("id", String.valueOf(rs.getId()))
+            .param("keyWord", newRsEvent.getKeyWord())
+    )
+        .andExpect(status().isOk());
+    updatedRsEvent = this.rsEventRepository.findById(rs.getId()).get();
+    assertEquals(newRsEvent, modelMapper.map(updatedRsEvent, RsEvent.class));
+
+    newRsEvent.setEventName("rs-modified-again");
+    newRsEvent.setKeyWord("key-modified-again");
+
+    this.mockMvc.perform(
+        patch("/rs/update")
+            .param("id", String.valueOf(rs.getId()))
+            .param("eventName", newRsEvent.getEventName())
+    )
+        .andExpect(status().isOk());
+    updatedRsEvent = this.rsEventRepository.findById(rs.getId()).get();
+    assertEquals(newRsEvent, modelMapper.map(updatedRsEvent, RsEvent.class));
   }
 
   @Test
